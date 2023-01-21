@@ -13,6 +13,7 @@ var opts t8r.Options
 
 func init() {
 	rootCmd.PersistentFlags().IntVarP(&opts.CPS, "cps", "c", t8r.DefaultOpts.CPS, "Characters per second")
+	rootCmd.PersistentFlags().BoolVarP(&opts.Highlighted, "highlighted", "l", t8r.DefaultOpts.Highlighted, "Print syntax highlighted text or not")
 }
 
 func main() {
