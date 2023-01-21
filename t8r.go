@@ -7,9 +7,20 @@ import (
 	"time"
 )
 
-type Options struct{}
+type Options struct {
+	CPS int // Characters per second
+}
 
-func Slice(s string, o *Options) []string {
+var DefaultOpts = &Options{CPS: 50}
+
+func initOptions(opts *Options) *Options {
+	if opts == nil {
+		return DefaultOpts
+	}
+	return opts
+}
+
+func Slice(s string, opts *Options) []string {
 	res := make([]string, 0, len(s))
 	for _, v := range s {
 		res = append(res, string(v))
@@ -17,16 +28,18 @@ func Slice(s string, o *Options) []string {
 	return res
 }
 
-func Println(s string, o *Options) {
+func Println(s string, opts *Options) {
+	o := initOptions(opts)
 	sl := Slice(s, o)
 	for _, v := range sl {
 		fmt.Print(v)
-		time.Sleep(30 * time.Millisecond)
+		time.Sleep(time.Second / time.Duration(o.CPS))
 	}
 	fmt.Println()
 }
 
-func PrintFile(filename string, o *Options) error {
+func PrintFile(filename string, opts *Options) error {
+	o := initOptions(opts)
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
