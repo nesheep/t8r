@@ -3,8 +3,6 @@ package t8r
 import (
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"time"
 
 	"github.com/alecthomas/chroma/v2"
@@ -60,22 +58,9 @@ func (w Typewriter) write(p []byte) (int, error) {
 func (w Typewriter) writeHighlighted(p []byte) (int, error) {
 	s := string(p)
 
-	var lexer chroma.Lexer
-	if w.Lng != "" {
-		lexer = lexers.Get(w.Lng)
-	} else {
-		lexer = lexers.Analyse(s)
-	}
-	if lexer == nil {
-		lexer = lexers.Fallback
-	}
-
-	style := styles.Get("monokai")
-	if style == nil {
-		style = styles.Fallback
-	}
-
-	iter, err := lexer.Tokenise(nil, s)
+	style := w.style("monokai")
+	lxr := w.lexer(s)
+	iter, err := lxr.Tokenise(nil, s)
 	if err != nil {
 		return 0, err
 	}
@@ -107,31 +92,23 @@ func (w Typewriter) writeHighlighted(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func Println(s string, opts *Options) {
-	w := NewTypewriter(os.Stdout, opts)
-	fmt.Fprintln(w, s)
+func (w Typewriter) lexer(s string) chroma.Lexer {
+	var lxr chroma.Lexer
+	if w.Lng != "" {
+		lxr = lexers.Get(w.Lng)
+	} else {
+		lxr = lexers.Analyse(s)
+	}
+	if lxr == nil {
+		lxr = lexers.Fallback
+	}
+	return lxr
 }
 
-func PrintFile(filename string, opts *Options) error {
-	f, err := os.Open(filename)
-	if err != nil {
-		return err
+func (w Typewriter) style(name string) *chroma.Style {
+	s := styles.Get(name)
+	if s == nil {
+		s = styles.Fallback
 	}
-	defer f.Close()
-
-	b, err := io.ReadAll(f)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	lexer := lexers.Match(filename)
-	if lexer == nil {
-		lexer = lexers.Fallback
-	}
-
-	w := NewTypewriter(os.Stdout, opts)
-	w.Lng = lexer.Config().Name
-	fmt.Fprint(w, string(b))
-
-	return nil
+	return s
 }
