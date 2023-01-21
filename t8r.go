@@ -1,10 +1,14 @@
 package t8r
 
 import (
-	"bufio"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"time"
+	"unicode"
+
+	"github.com/alecthomas/chroma/v2/quick"
 )
 
 type Options struct {
@@ -20,38 +24,43 @@ func initOptions(opts *Options) *Options {
 	return opts
 }
 
-func Slice(s string, opts *Options) []string {
-	res := make([]string, 0, len(s))
-	for _, v := range s {
-		res = append(res, string(v))
+type Typewriter struct {
+	Opts *Options
+}
+
+func NewTypewriter(opts *Options) Typewriter {
+	return Typewriter{Opts: initOptions(opts)}
+}
+
+func (w Typewriter) Write(p []byte) (int, error) {
+	for _, v := range string(p) {
+		fmt.Print(string(v))
+		if unicode.IsLetter(v) {
+			time.Sleep(time.Second / time.Duration(w.Opts.CPS))
+		}
 	}
-	return res
+	return len(p), nil
 }
 
 func Println(s string, opts *Options) {
-	o := initOptions(opts)
-	sl := Slice(s, o)
-	for _, v := range sl {
-		fmt.Print(v)
-		time.Sleep(time.Second / time.Duration(o.CPS))
-	}
-	fmt.Println()
+	w := NewTypewriter(opts)
+	fmt.Fprintln(w, s)
 }
 
 func PrintFile(filename string, opts *Options) error {
-	o := initOptions(opts)
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		Println(line, o)
+	b, err := io.ReadAll(f)
+	if err != nil {
+		log.Fatal(err)
 	}
-	if err := scanner.Err(); err != nil {
+
+	w := NewTypewriter(opts)
+	if err := quick.Highlight(w, string(b), "go", "terminal256", "monokai"); err != nil {
 		return err
 	}
 
