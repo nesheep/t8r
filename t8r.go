@@ -12,7 +12,7 @@ import (
 
 type Options struct {
 	CPS         int  // Characters per second
-	Highlighted bool // Print syntax highlighted text or not
+	Highlighted bool // Enable syntax highlighting
 }
 
 var DefaultOpts = &Options{
@@ -65,28 +65,30 @@ func (w Typewriter) writeHighlighted(p []byte) (int, error) {
 		return 0, err
 	}
 
-	for token := iter(); token != chroma.EOF; token = iter() {
-		entry := style.Get(token.Type)
-		if !entry.IsZero() {
-			out := ""
-			if entry.Bold == chroma.Yes {
-				out += "\033[1m"
-			}
-			if entry.Underline == chroma.Yes {
-				out += "\033[4m"
-			}
-			if entry.Italic == chroma.Yes {
-				out += "\033[3m"
-			}
-			if entry.Colour.IsSet() {
-				out += fmt.Sprintf("\033[38;2;%d;%d;%dm", entry.Colour.Red(), entry.Colour.Green(), entry.Colour.Blue())
-			}
-			fmt.Fprint(w.w, out)
+	for t := iter(); t != chroma.EOF; t = iter() {
+		e := style.Get(t.Type)
+		if e.IsZero() {
+			w.write([]byte(t.Value))
+			continue
 		}
-		w.write([]byte(token.Value))
-		if !entry.IsZero() {
-			fmt.Fprint(w.w, "\033[0m")
+
+		out := ""
+		if e.Bold == chroma.Yes {
+			out += "\033[1m"
 		}
+		if e.Underline == chroma.Yes {
+			out += "\033[4m"
+		}
+		if e.Italic == chroma.Yes {
+			out += "\033[3m"
+		}
+		if e.Colour.IsSet() {
+			out += fmt.Sprintf("\033[38;2;%d;%d;%dm", e.Colour.Red(), e.Colour.Green(), e.Colour.Blue())
+		}
+
+		fmt.Fprint(w.w, out)
+		w.write([]byte(t.Value))
+		fmt.Fprint(w.w, "\033[0m")
 	}
 
 	return len(p), nil
