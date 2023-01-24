@@ -6,15 +6,19 @@ import (
 	"log"
 	"os"
 
-	"github.com/alecthomas/chroma/v2/lexers"
+	"github.com/alecthomas/chroma/v2"
 )
 
-func Println(s string, opts *Options) {
-	w := NewTypewriter(os.Stdout, opts)
+func Println(s string, lexer chroma.Lexer, style *chroma.Style, options *Options) {
+	w := NewWriter(os.Stdout, lexer, style, options)
 	fmt.Fprintln(w, s)
 }
 
-func PrintFile(filename string, opts *Options) error {
+func PrintlnDefault(s string) {
+	Println(s, nil, nil, nil)
+}
+
+func PrintFile(filename string, lexer chroma.Lexer, style *chroma.Style, options *Options) error {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -26,14 +30,12 @@ func PrintFile(filename string, opts *Options) error {
 		log.Fatal(err)
 	}
 
-	lxr := lexers.Match(filename)
-	if lxr == nil {
-		lxr = lexers.Fallback
-	}
-
-	w := NewTypewriter(os.Stdout, opts)
-	w.Lng = lxr.Config().Name
+	w := NewWriter(os.Stdout, lexer, style, options)
 	fmt.Fprint(w, string(b))
 
 	return nil
+}
+
+func PrintFileDefault(filename string) error {
+	return PrintFile(filename, nil, nil, nil)
 }
