@@ -10,8 +10,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "tcat [filenaes]",
-	Short: "Print files to the screen",
+	Use:   "tcat [filenames]",
+	Short: "Print files to the screen with typewriter effect",
 	Args:  cobra.MinimumNArgs(1),
 	Run:   tcat,
 }
