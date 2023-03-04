@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/alecthomas/chroma/v2/styles"
@@ -16,10 +18,24 @@ var rootCmd = &cobra.Command{
 	Run:   tcat,
 }
 
-var cps int
+var stylesCmd = &cobra.Command{
+	Use:   "styles",
+	Short: "Print names of all available styles",
+	Args:  cobra.MaximumNArgs(1),
+	Run:   searchStyles,
+}
+
+var (
+	cps   int
+	style string
+)
 
 func init() {
-	rootCmd.PersistentFlags().IntVarP(&cps, "cps", "c", t8r.DefaultOptions.CPS, "Characters per second")
+	styles.Fallback = styles.Get("monokai")
+
+	rootCmd.Flags().IntVarP(&cps, "cps", "c", t8r.DefaultOptions.CPS, "Characters per second")
+	rootCmd.Flags().StringVarP(&style, "style", "s", t8r.DefaultOptions.Style, "Name of style")
+	rootCmd.AddCommand(stylesCmd)
 }
 
 func main() {
@@ -32,9 +48,17 @@ func tcat(cmd *cobra.Command, args []string) {
 		Highlighted: true,
 	}
 	for _, v := range args {
-		err := t8r.PrintFile(v, lexers.Match(v), styles.Get("monokai"), options)
+		err := t8r.PrintFile(v, lexers.Match(v), styles.Get(style), options)
 		if err != nil {
 			log.Print(err)
+		}
+	}
+}
+
+func searchStyles(cmd *cobra.Command, args []string) {
+	for _, v := range styles.Names() {
+		if len(args) == 0 || strings.HasPrefix(v, args[0]) {
+			fmt.Println(v)
 		}
 	}
 }
