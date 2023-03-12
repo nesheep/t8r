@@ -57,7 +57,20 @@ func (w Writer) writeHighlighted(p []byte) (int, error) {
 		return 0, err
 	}
 
+	l := 1
+	newLine := true
 	for t := iter(); t != chroma.EOF; t = iter() {
+		if w.Options.WithNumber {
+			if newLine {
+				fmt.Fprintf(w.w, "%6d  ", l)
+				l++
+			}
+			if t.Value == "\n" {
+				newLine = true
+			} else {
+				newLine = false
+			}
+		}
 		w.writeToken(t)
 	}
 

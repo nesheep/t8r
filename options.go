@@ -1,15 +1,15 @@
 package t8r
 
 type Options struct {
-	CPS         int    // Characters per second
-	Style       string // Name of style
-	Highlighted bool   // Enable syntax highlighting
+	CPS         int  // Characters per second
+	WithNumber  bool // Number the output lines, starting at 1
+	Highlighted bool // Enable syntax highlighting
 }
 
 var DefaultOptions = &Options{
 	CPS:         50,
-	Style:       "monokai",
-	Highlighted: false,
+	WithNumber:  false,
+	Highlighted: true,
 }
 
 func newOptions(options *Options) *Options {

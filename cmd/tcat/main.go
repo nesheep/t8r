@@ -26,15 +26,17 @@ var stylesCmd = &cobra.Command{
 }
 
 var (
-	cps   int
-	style string
+	cps        int
+	withNumber bool
+	style      string
 )
 
 func init() {
 	styles.Fallback = styles.Get("monokai")
 
 	rootCmd.Flags().IntVarP(&cps, "cps", "c", t8r.DefaultOptions.CPS, "Characters per second")
-	rootCmd.Flags().StringVarP(&style, "style", "s", t8r.DefaultOptions.Style, "Name of style")
+	rootCmd.Flags().BoolVarP(&withNumber, "number", "n", t8r.DefaultOptions.WithNumber, "Number the output lines, starting at 1")
+	rootCmd.Flags().StringVarP(&style, "style", "s", "monokai", "Name of style")
 	rootCmd.AddCommand(stylesCmd)
 }
 
@@ -45,6 +47,7 @@ func main() {
 func tcat(cmd *cobra.Command, args []string) {
 	options := &t8r.Options{
 		CPS:         cps,
+		WithNumber:  withNumber,
 		Highlighted: true,
 	}
 	for _, v := range args {
