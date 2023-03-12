@@ -20,7 +20,7 @@ var rootCmd = &cobra.Command{
 
 var stylesCmd = &cobra.Command{
 	Use:   "styles",
-	Short: "Print names of all available styles",
+	Short: "Search names of available styles",
 	Args:  cobra.MaximumNArgs(1),
 	Run:   searchStyles,
 }
