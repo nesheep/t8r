@@ -3,6 +3,7 @@ package t8r
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/alecthomas/chroma/v2"
@@ -57,9 +58,26 @@ func (w Writer) writeHighlighted(p []byte) (int, error) {
 		return 0, err
 	}
 
+	tokens := []chroma.Token{}
+	for t := iter(); t != chroma.EOF; t = iter() {
+		if w.Options.WithNumber {
+			s := strings.Split(t.Value, "\n")
+			for i, e := range s {
+				if e != "" {
+					tokens = append(tokens, chroma.Token{Type: t.Type, Value: e})
+				}
+				if i != len(s)-1 {
+					tokens = append(tokens, chroma.Token{Type: t.Type, Value: "\n"})
+				}
+			}
+		} else {
+			tokens = append(tokens, t)
+		}
+	}
+
 	l := 1
 	newLine := true
-	for t := iter(); t != chroma.EOF; t = iter() {
+	for _, t := range tokens {
 		if w.Options.WithNumber {
 			if newLine {
 				fmt.Fprintf(w.w, "%6d  ", l)
